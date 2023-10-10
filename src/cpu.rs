@@ -26,7 +26,7 @@ impl Cpu {
             | (self.dram[self.pc] as u32);
     }
     fn sign_extend(imm: u32) -> u32 {
-        let top_bit = (imm >> 31) & 0x1;
+        let top_bit = (imm >> 11) & 0x1;
         println!("Top bit: {top_bit}");
         return match top_bit {
             0 => imm,
@@ -39,7 +39,7 @@ impl Cpu {
     }
     fn alu_add(op1: u32, op2: u32) -> u32 {
         // Need a better implementation that handles hardware behaviour
-        return op1 + op2;
+        return op1.wrapping_add(op2);
     }
 
     pub fn execute(&mut self, instruction: u32) {

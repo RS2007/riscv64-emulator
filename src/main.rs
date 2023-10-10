@@ -27,7 +27,7 @@ mod tests {
         }
         assert_eq!(core.regs[0], 0);
         assert_eq!(core.regs[31], 2);
-        assert_eq!(core.regs[30], 3);
-        assert_eq!(core.regs[29], 5);
+        assert_eq!(core.regs[30], 2);
+        assert_eq!(core.regs[29], 4);
     }
 }
