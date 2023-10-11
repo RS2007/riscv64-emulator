@@ -1,4 +1,7 @@
+mod bus;
 mod cpu;
+mod dram;
+#[allow(dead_code, unused_imports)]
 
 fn main() {}
 #[cfg(test)]
@@ -8,26 +11,31 @@ mod tests {
 
     #[test]
     fn test_add_addi() {
-        let mut core = cpu::Cpu::new();
-        let mut dram: Box<Vec<u8>> = Box::new(vec![]);
+        let mut buffer = vec![];
         if let Ok(mut file) = File::open("test.bin") {
-            if let Ok(_) = file.read_to_end(&mut dram) {
-                core.add_dram(dram);
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            core.execute(inst);
+                            core.pc += 4;
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
+                assert_eq!(core.regs[0], 0);
+                assert_eq!(core.regs[31], 2);
+                assert_eq!(core.regs[30], 2);
+                assert_eq!(core.regs[29], 4);
             } else {
                 assert!(false, "Should'nt hit this");
             }
         } else {
             assert!(false, "Should'nt hit this");
         }
-        core.dram.iter().for_each(|byte| println!("{:#02x}", byte));
-        while core.pc < core.dram.len() {
-            let inst = core.fetch();
-            core.execute(inst);
-            core.pc += 4;
-        }
-        assert_eq!(core.regs[0], 0);
-        assert_eq!(core.regs[31], 2);
-        assert_eq!(core.regs[30], 2);
-        assert_eq!(core.regs[29], 4);
     }
 }
