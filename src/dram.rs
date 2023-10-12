@@ -7,7 +7,11 @@ pub struct Dram {
 impl Dram {
     pub fn new(mut code: Vec<u8>) -> Self {
         let mut dram: Vec<u8> = vec![0; DRAM_BASE as usize];
+        code.iter().for_each(|byte| {
+            println!("{:#x}", byte);
+        });
         dram.append(&mut code);
+        dram.resize(dram.len() + 128 * 1024, 0);
         return Dram { buffer: dram };
     }
     pub fn len(&mut self) -> usize {
@@ -68,20 +72,23 @@ impl Dram {
     }
 
     pub fn store16(&mut self, addr: usize, value: u64) -> Result<(), ()> {
-        self.buffer[addr + 1] = value.try_into().unwrap();
-        self.buffer[addr] = (value << 8).try_into().unwrap();
+        self.buffer[addr + 1] = (value << 8).try_into().unwrap();
+        self.buffer[addr] = value.try_into().unwrap();
         return Ok(());
     }
 
     pub fn store32(&mut self, addr: usize, value: u64) -> Result<(), ()> {
-        self.buffer[addr + 3] = value.try_into().unwrap();
-        self.buffer[addr + 2] = (value >> 8).try_into().unwrap();
-        self.buffer[addr + 1] = (value >> 16).try_into().unwrap();
-        self.buffer[addr] = (value >> 24).try_into().unwrap();
+        // 0x1f0
+        self.buffer[addr + 3] = (value >> 24).try_into().unwrap();
+        self.buffer[addr + 2] = ((value >> 16) & 0xff).try_into().unwrap();
+        self.buffer[addr + 1] = ((value >> 8) & 0xff).try_into().unwrap();
+        self.buffer[addr] = (value & 0xff).try_into().unwrap();
+        println!("{}:{}:{}:{}", self.buffer[addr+3],self.buffer[addr+2],self.buffer[addr+1],self.buffer[addr]);
         return Ok(());
     }
 
     pub fn store64(&mut self, addr: usize, value: u64) -> Result<(), ()> {
+        // Reverse byte order
         self.buffer[addr + 7] = value.try_into().unwrap();
         self.buffer[addr + 6] = (value >> 8).try_into().unwrap();
         self.buffer[addr + 5] = (value >> 16).try_into().unwrap();

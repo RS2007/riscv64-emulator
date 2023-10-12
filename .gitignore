@@ -2,3 +2,5 @@
 test
 test.o
 test.bin
+output.debug
+TODO.md
