@@ -13,6 +13,8 @@ const ALU_OPCODE: u32 = 0b0110011;
 const ALUI_OPCODE: u32 = 0b0010011;
 const ADD_FUNCT7: u32 = 0b0000000;
 const SUB_FUNCT7: u32 = 0b0100000;
+const ADDI_FUNCT3: u32 = 0b000;
+const ORI_FUNCT3: u32 = 0b110;
 const LOAD_OPCODE: u32 = 0b0000011;
 const STORE_OPCODE: u32 = 0b0100011;
 const SB_FUNCT3: u32 = 0b000;
@@ -82,11 +84,21 @@ impl Cpu {
                     todo!();
                 }
             },
-            ALUI_OPCODE => {
-                let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
-                println!("Add: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
-                self.regs[rd] = Cpu::alu_add(self.regs[rs1], imm);
-            }
+            ALUI_OPCODE => match funct3 {
+                ADDI_FUNCT3 => {
+                    let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
+                    println!("Add: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
+                    self.regs[rd] = Cpu::alu_add(self.regs[rs1], imm);
+                }
+                ORI_FUNCT3 => {
+                    let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
+                    println!("Or: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
+                    self.regs[rd] = self.regs[rs1] | imm;
+                }
+                _ => {
+                    todo!();
+                }
+            },
             LOAD_OPCODE => match funct3 {
                 LB_FUNCT3 => {
                     println!("Load Byte");
@@ -166,8 +178,10 @@ impl Cpu {
                     self.regs[rd] = (self
                         .bus
                         .load(
-                            (self.regs[rs1] + Cpu::sign_extend((instruction & 0xfff00000) >> 20))
-                                as usize,
+                            Cpu::alu_add(
+                                self.regs[rs1],
+                                Cpu::sign_extend((instruction & 0xfff00000) >> 20),
+                            ) as usize,
                             16,
                         )
                         .unwrap()

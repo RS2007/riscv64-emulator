@@ -1,6 +1,7 @@
 /target
 test
-test.o
-test.bin
 output.debug
 TODO.md
+test*.o
+test*.bin
+test*.elf

@@ -38,10 +38,16 @@ impl Dram {
     }
 
     pub fn load8(&self, addr: usize) -> Result<u64, ()> {
+        if addr > self.buffer.len() - 1 {
+            return Err(());
+        }
         return Ok(self.buffer[addr] as u64);
     }
 
     pub fn load16(&self, addr: usize) -> Result<u64, ()> {
+        if addr > self.buffer.len() - 1 {
+            return Err(());
+        }
         return Ok(((self.buffer[addr + 1] as u64) << 8) | (self.buffer[addr] as u64));
     }
 
@@ -56,6 +62,9 @@ impl Dram {
     }
 
     pub fn load64(&self, addr: usize) -> Result<u64, ()> {
+        if addr > self.buffer.len() - 1 {
+            return Err(());
+        }
         return Ok(((self.buffer[addr + 7] as u64) << 56)
             | ((self.buffer[addr + 6] as u64) << 48)
             | ((self.buffer[addr + 5] as u64) << 40)
@@ -72,8 +81,8 @@ impl Dram {
     }
 
     pub fn store16(&mut self, addr: usize, value: u64) -> Result<(), ()> {
-        self.buffer[addr + 1] = (value << 8).try_into().unwrap();
-        self.buffer[addr] = value.try_into().unwrap();
+        self.buffer[addr + 1] = ((value >> 8) & 0xff).try_into().unwrap();
+        self.buffer[addr] = (value & 0xff).try_into().unwrap();
         return Ok(());
     }
 
@@ -83,20 +92,27 @@ impl Dram {
         self.buffer[addr + 2] = ((value >> 16) & 0xff).try_into().unwrap();
         self.buffer[addr + 1] = ((value >> 8) & 0xff).try_into().unwrap();
         self.buffer[addr] = (value & 0xff).try_into().unwrap();
-        println!("{}:{}:{}:{}", self.buffer[addr+3],self.buffer[addr+2],self.buffer[addr+1],self.buffer[addr]);
+        println!(
+            "{}:{}:{}:{}",
+            self.buffer[addr + 3],
+            self.buffer[addr + 2],
+            self.buffer[addr + 1],
+            self.buffer[addr]
+        );
         return Ok(());
     }
 
     pub fn store64(&mut self, addr: usize, value: u64) -> Result<(), ()> {
         // Reverse byte order
-        self.buffer[addr + 7] = value.try_into().unwrap();
-        self.buffer[addr + 6] = (value >> 8).try_into().unwrap();
-        self.buffer[addr + 5] = (value >> 16).try_into().unwrap();
-        self.buffer[addr + 4] = (value >> 24).try_into().unwrap();
-        self.buffer[addr + 3] = (value >> 32).try_into().unwrap();
-        self.buffer[addr + 2] = (value >> 40).try_into().unwrap();
-        self.buffer[addr + 1] = (value >> 48).try_into().unwrap();
-        self.buffer[addr + 0] = (value >> 56).try_into().unwrap();
+        self.buffer[addr + 7] = (value >> 56).try_into().unwrap();
+        self.buffer[addr + 6] = (value >> 48).try_into().unwrap();
+        self.buffer[addr + 5] = (value >> 40).try_into().unwrap();
+        self.buffer[addr + 4] = (value >> 32).try_into().unwrap();
+        self.buffer[addr + 3] = (value >> 24).try_into().unwrap();
+        self.buffer[addr + 2] = (value >> 16).try_into().unwrap();
+        self.buffer[addr + 1] = (value >> 8).try_into().unwrap();
+        self.buffer[addr + 0] = value.try_into().unwrap();
+
         return Ok(());
     }
 }

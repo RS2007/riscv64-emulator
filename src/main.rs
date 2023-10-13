@@ -97,4 +97,120 @@ mod tests {
             assert!(false, "Should'nt hit this");
         }
     }
+    #[test]
+    fn test_load_store2() {
+        let mut buffer = vec![];
+        if let Ok(mut file) = File::open("test_load_store2.bin") {
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            if inst == 0x0 {
+                                break;
+                            }
+                            core.execute(inst);
+                            dump_registers(&core);
+                            print_mem_around_interest(&core, 500);
+                            core.pc += 4;
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
+                core.regs.iter().enumerate().for_each(|(index, reg)| {
+                    println!("{index}: {reg}");
+                });
+                assert_eq!(core.regs[15], 10);
+                assert_eq!(core.regs[0], 0);
+                assert_eq!(core.regs[1], 0);
+                assert_eq!(core.regs[2], 0);
+            } else {
+                assert!(false, "Should'nt hit this");
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    }
+    #[test]
+    fn test_load_store3() {
+        let mut buffer = vec![];
+        if let Ok(mut file) = File::open("test_load_store3.bin") {
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            if inst == 0x0 {
+                                break;
+                            }
+                            core.execute(inst);
+                            dump_registers(&core);
+                            print_mem_around_interest(&core, 500);
+                            core.pc += 4;
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
+                core.regs.iter().enumerate().for_each(|(index, reg)| {
+                    println!("{index}: {reg}");
+                });
+                assert_eq!(core.regs[11], 4);
+                assert_eq!(core.regs[12], 60);
+                assert_eq!(core.regs[13], 10);
+                assert_eq!(core.regs[14], 60);
+                assert_eq!(core.regs[15], 10);
+                assert_eq!(core.regs[16], 70);
+                assert_eq!(core.regs[17], 70);
+            } else {
+                assert!(false, "Should'nt hit this");
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    }
+
+    #[test]
+    fn test_load_store4() {
+        let mut buffer = vec![];
+        if let Ok(mut file) = File::open("test_load_store4.bin") {
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            if inst == 0x0 {
+                                break;
+                            }
+                            core.execute(inst);
+                            dump_registers(&core);
+                            print_mem_around_interest(&core, 500);
+                            core.pc += 4;
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
+                core.regs.iter().enumerate().for_each(|(index, reg)| {
+                    println!("{index}: {reg}");
+                });
+                assert_eq!(core.regs[0], 0);
+                assert_eq!(core.regs[1], 259);
+                assert_eq!(core.regs[2], 259);
+                assert_eq!(core.regs[3], 0);
+                assert_eq!(core.regs[4], 259);
+            } else {
+                assert!(false, "Should'nt hit this");
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    }
 }

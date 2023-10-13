@@ -1,0 +1,11 @@
+addi a0,x0,0
+addi a1,x0,4
+addi a2,x0,60
+addi a3,x0,10
+sw a2,4(a0)
+sw a3,8(a1)
+lw a4,4(a0)
+lw a5,8(a1)
+add a6,a2,a3
+add a7,a4,a5
+sub t1,a6,a7
