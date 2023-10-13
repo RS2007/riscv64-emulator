@@ -254,4 +254,48 @@ mod tests {
             assert!(false, "Should'nt hit this");
         }
     }
+
+    #[test]
+    fn test_shift_bits_family() {
+        let mut buffer = vec![];
+        if let Ok(mut file) = File::open("test_shift_bits_family.bin") {
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            if inst == 0x0 {
+                                break;
+                            }
+                            core.execute(inst);
+                            dump_registers(&core);
+                            print_mem_around_interest(&core, 500);
+                            core.pc += 4;
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
+                core.regs.iter().enumerate().for_each(|(index, reg)| {
+                    println!("{index}: {reg}");
+                });
+                assert_eq!(core.regs[0], 0);
+                assert_eq!(core.regs[1], 0xffffffff);
+                assert_eq!(core.regs[2], 3);
+                assert_eq!(core.regs[3], 0xffffffff);
+                assert_eq!(core.regs[4], 0x1fffffff);
+                assert_eq!(core.regs[5], 0xffffffff);
+                assert_eq!(core.regs[6], 0x1fffffff);
+                assert_eq!(core.regs[7], 0xfffffffe);
+                assert_eq!(core.regs[8], 0xfffffffe);
+                assert_eq!(core.regs[9], 0);
+            } else {
+                assert!(false, "Should'nt hit this");
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    }
 }

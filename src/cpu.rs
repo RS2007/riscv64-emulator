@@ -201,10 +201,7 @@ impl Cpu {
                     SRAI_FUNCT7 => {
                         let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
                         println!("Srai: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
-                        self.regs[rd] = u32::try_from(
-                            (i32::try_from(self.regs[rs1]).unwrap()) >> ((imm & 0x1f) as u32),
-                        )
-                        .unwrap();
+                        self.regs[rd] = ((self.regs[rs1] as i32) >> ((imm & 0x1f) as u32)) as u32;
                     }
                     _ => {
                         todo!();
