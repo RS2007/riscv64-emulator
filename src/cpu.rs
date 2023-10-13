@@ -31,8 +31,8 @@ const ORI_FUNCT3: u32 = 0b110;
 const ANDI_FUNCT3: u32 = 0b111;
 const SLLI_FUNCT3: u32 = 0b001;
 const SRLI_SRAI_FUNCT3: u32 = 0b101;
-const SRLI_FUNCT7:u32 = 0b0000000;
-const SRAI_FUNCT7:u32 = 0b0100000;
+const SRLI_FUNCT7: u32 = 0b0000000;
+const SRAI_FUNCT7: u32 = 0b0100000;
 const LOAD_OPCODE: u32 = 0b0000011;
 const STORE_OPCODE: u32 = 0b0100011;
 const SB_FUNCT3: u32 = 0b000;
@@ -159,12 +159,10 @@ impl Cpu {
                 SLTI_FUNCT3 => {
                     let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
                     println!("Slti: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
-                    self.regs[rd] = match (i32::try_from(self.regs[rs1]).unwrap())
-                        < (i32::try_from(imm).unwrap())
-                    {
+                    self.regs[rd] = match (self.regs[rs1] as i32) < (imm as i32) {
                         true => 1,
                         false => 0,
-                    };
+                    }
                 }
                 SLTIU_FUNCT3 => {
                     let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
@@ -195,18 +193,25 @@ impl Cpu {
                     self.regs[rd] = self.regs[rs1] << imm;
                 }
                 SRLI_SRAI_FUNCT3 => match funct7 {
-                    SRLI_FUNCT7=>{
-                        todo!();
-                    },
-                    SRAI_FUNCT7=>{
-                        todo!();
+                    SRLI_FUNCT7 => {
+                        let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
+                        println!("Srli: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
+                        self.regs[rd] = (self.regs[rs1] as u32) >> ((imm & 0x1f) as u32);
+                    }
+                    SRAI_FUNCT7 => {
+                        let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
+                        println!("Srai: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
+                        self.regs[rd] = u32::try_from(
+                            (i32::try_from(self.regs[rs1]).unwrap()) >> ((imm & 0x1f) as u32),
+                        )
+                        .unwrap();
                     }
                     _ => {
                         todo!();
                     }
                 },
                 _ => {
-                    assert!(false,"Should'nt hit this");
+                    assert!(false, "Should'nt hit this");
                 }
             },
             LOAD_OPCODE => match funct3 {

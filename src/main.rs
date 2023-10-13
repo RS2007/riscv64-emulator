@@ -213,4 +213,45 @@ mod tests {
             assert!(false, "Should'nt hit this");
         }
     }
+
+    #[test]
+    fn test_slt_family() {
+        let mut buffer = vec![];
+        if let Ok(mut file) = File::open("test_slt_family.bin") {
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            if inst == 0x0 {
+                                break;
+                            }
+                            core.execute(inst);
+                            dump_registers(&core);
+                            print_mem_around_interest(&core, 500);
+                            core.pc += 4;
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
+                core.regs.iter().enumerate().for_each(|(index, reg)| {
+                    println!("{index}: {reg}");
+                });
+                assert_eq!(core.regs[4], 1);
+                assert_eq!(core.regs[5], 0xfffffffd);
+                assert_eq!(core.regs[6], 1);
+                assert_eq!(core.regs[7], 1);
+                assert_eq!(core.regs[8], 1);
+                assert_eq!(core.regs[9], 0);
+                assert_eq!(core.regs[10], 0xffffffff);
+            } else {
+                assert!(false, "Should'nt hit this");
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    }
 }
