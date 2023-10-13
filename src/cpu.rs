@@ -9,8 +9,10 @@ pub struct Cpu {
     pub bus: Bus,
 }
 
-const ADD_OPCODE: u32 = 0b0110011;
-const ADDI_OPCODE: u32 = 0b0010011;
+const ALU_OPCODE: u32 = 0b0110011;
+const ALUI_OPCODE: u32 = 0b0010011;
+const ADD_FUNCT7: u32 = 0b0000000;
+const SUB_FUNCT7: u32 = 0b0100000;
 const LOAD_OPCODE: u32 = 0b0000011;
 const STORE_OPCODE: u32 = 0b0100011;
 const SB_FUNCT3: u32 = 0b000;
@@ -54,6 +56,9 @@ impl Cpu {
     fn alu_add(op1: u32, op2: u32) -> u32 {
         return op1.wrapping_add(op2);
     }
+    fn alu_sub(op1: u32, op2: u32) -> u32 {
+        return op1.wrapping_sub(op2);
+    }
 
     pub fn execute(&mut self, instruction: u32) {
         println!("{:#x}", instruction);
@@ -62,12 +67,22 @@ impl Cpu {
         let rd = ((instruction >> 7) & 0x1f) as usize;
         let opcode = instruction & 0x7f;
         let funct3 = ((instruction >> 12) & 0x7) as u32;
+        let funct7 = ((instruction >> 25) & 0x7f) as u32;
         match opcode {
-            ADD_OPCODE => {
-                println!("Add: rs1={:?} rs2={:?} rd={:?}", rs1, rs2, rd);
-                self.regs[rd] = Cpu::alu_add(self.regs[rs1], self.regs[rs2]);
-            }
-            ADDI_OPCODE => {
+            ALU_OPCODE => match funct7 {
+                ADD_FUNCT7 => {
+                    println!("Add: rs1={:?} rs2={:?} rd={:?}", rs1, rs2, rd);
+                    self.regs[rd] = Cpu::alu_add(self.regs[rs1], self.regs[rs2]);
+                }
+                SUB_FUNCT7 => {
+                    println!("Sub: rs1={:?} rs2={:?} rd={:?}", rs1, rs2, rd);
+                    self.regs[rd] = Cpu::alu_sub(self.regs[rs1], self.regs[rs2]);
+                }
+                _ => {
+                    todo!();
+                }
+            },
+            ALUI_OPCODE => {
                 let imm = Cpu::sign_extend((instruction & 0xfff00000) >> 20);
                 println!("Add: rs1={:?} imm={:?} rd={:?}", rs1, imm, rd);
                 self.regs[rd] = Cpu::alu_add(self.regs[rs1], imm);
@@ -165,14 +180,14 @@ impl Cpu {
             STORE_OPCODE => {
                 let imm11to5 = (instruction >> 25) & 0x7f;
                 let imm4to0 = (instruction >> 7) & 0x1f;
-                let imm = (imm11to5 >> 5) | (imm4to0);
+                let imm = (imm11to5 << 5) | (imm4to0);
+                println!(
+                    "imm11to5: {:#32b} imm4to0: {:#32b}, imm: {:#32b}",
+                    imm11to5, imm4to0, imm
+                );
                 let addr: usize = (Cpu::alu_add(self.regs[rs1], Cpu::sign_extend(imm)))
                     .try_into()
                     .unwrap();
-                println!(
-                    "Address for store is imm: {imm}, rs1: {}={}, rs2: {}={}",
-                    rs1, self.regs[rs1], rs2, self.regs[rs2]
-                );
                 match funct3 {
                     SB_FUNCT3 => {
                         println!("SB");

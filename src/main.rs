@@ -77,7 +77,7 @@ mod tests {
                             }
                             core.execute(inst);
                             dump_registers(&core);
-                            print_mem_around_interest(&core, 110);
+                            print_mem_around_interest(&core, 500);
                             core.pc += 4;
                         }
                         Err(_e) => {
@@ -89,7 +89,7 @@ mod tests {
                     println!("{index}: {reg}");
                 });
                 assert_eq!(core.regs[8], 496);
-                assert_eq!(core.regs[4], 100);
+                assert_eq!(core.regs[14], 97);
             } else {
                 assert!(false, "Should'nt hit this");
             }
