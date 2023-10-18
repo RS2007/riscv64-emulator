@@ -1,0 +1,1 @@
+- Currently supports the RV32I instruction set
