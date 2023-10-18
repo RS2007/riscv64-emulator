@@ -1,36 +1,87 @@
+use std::{
+    fs::File,
+    io::{self, Read, Write},
+};
+
+use bus::DRAM_BASE;
+use cpu::Cpu;
+
 mod bus;
 mod cpu;
 mod dram;
 #[allow(dead_code, unused_imports)]
 
-fn main() {}
+fn evaluate(cpu: &mut Cpu, input: &str) -> bool {
+    match input {
+        "n" | "N" | "" => match cpu.fetch() {
+            Ok(inst) => {
+                println!("instruction : {:#x}", inst);
+                if inst == 0x0 {
+                    println!("Program execution done");
+                    return false;
+                }
+                cpu.execute(inst);
+                cpu.regs[0] = 0;
+                return true;
+            }
+            Err(_e) => {
+                println!("Error");
+                return false;
+            }
+        },
+        "regs" | "reg" => {
+            cpu.print_registers();
+            return true;
+        }
+        "mem" => {
+            cpu.print_mem_around_interest(500);
+            return true;
+        }
+        _ => {
+            println!("Invalid instruction for debugger");
+            return false;
+        }
+    }
+}
+
+fn main() {
+    let mut buffer = vec![];
+    if let Ok(mut file) = File::open("test.bin") {
+        if let Ok(_) = file.read_to_end(&mut buffer) {
+            let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+            core.regs[2] = (DRAM_BASE + 1024 * 1024) as u32;
+            loop {
+                print!(">");
+                io::stdout().flush().unwrap();
+
+                let mut input = String::new();
+                io::stdin()
+                    .read_line(&mut input)
+                    .expect("Failed to read line");
+                input = input.trim().to_string();
+                println!("Input: {input}");
+
+                let result = evaluate(&mut core, &input);
+                if !result {
+                    core.print_registers();
+                    return;
+                }
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    } else {
+        assert!(false, "Should'nt hit this");
+    }
+}
 
 #[cfg(test)]
 mod tests {
-    use crate::cpu::Cpu;
+    use crate::{bus::DRAM_BASE, cpu::Cpu};
 
     use super::*;
     use std::{fs::File, io::Read};
 
-    fn dump_registers(core: &Cpu) {
-        println!("Printing regs");
-        println!("---------------------");
-        core.regs.iter().enumerate().for_each(|(index, reg)| {
-            println!("{index}: {reg}");
-        });
-        println!("---------------------");
-        println!("Register ends");
-    }
-
-    fn print_mem_around_interest(core: &Cpu, addr: usize) {
-        println!("Printing mem");
-        println!("-----------------------");
-        for i in (addr - 40)..=addr {
-            println!("{i} {}", core.bus.load(i, 8).unwrap());
-        }
-        println!("-----------------------");
-        println!("Mem ends");
-    }
     #[test]
     fn test_add_addi() {
         let mut buffer = vec![];
@@ -42,7 +93,6 @@ mod tests {
                         Ok(inst) => {
                             println!("instruction : {:#x}", inst);
                             core.execute(inst);
-                            core.pc += 4;
                         }
                         Err(_e) => {
                             break;
@@ -76,9 +126,8 @@ mod tests {
                                 break;
                             }
                             core.execute(inst);
-                            dump_registers(&core);
-                            print_mem_around_interest(&core, 500);
-                            core.pc += 4;
+                            core.print_registers();
+                            core.print_mem_around_interest(500);
                         }
                         Err(_e) => {
                             break;
@@ -111,9 +160,8 @@ mod tests {
                                 break;
                             }
                             core.execute(inst);
-                            dump_registers(&core);
-                            print_mem_around_interest(&core, 500);
-                            core.pc += 4;
+                            core.print_registers();
+                            core.print_mem_around_interest(500);
                         }
                         Err(_e) => {
                             break;
@@ -148,9 +196,8 @@ mod tests {
                                 break;
                             }
                             core.execute(inst);
-                            dump_registers(&core);
-                            print_mem_around_interest(&core, 500);
-                            core.pc += 4;
+                            core.print_registers();
+                            core.print_mem_around_interest(500);
                         }
                         Err(_e) => {
                             break;
@@ -189,9 +236,8 @@ mod tests {
                                 break;
                             }
                             core.execute(inst);
-                            dump_registers(&core);
-                            print_mem_around_interest(&core, 500);
-                            core.pc += 4;
+                            core.print_registers();
+                            core.print_mem_around_interest(500);
                         }
                         Err(_e) => {
                             break;
@@ -228,9 +274,8 @@ mod tests {
                                 break;
                             }
                             core.execute(inst);
-                            dump_registers(&core);
-                            print_mem_around_interest(&core, 500);
-                            core.pc += 4;
+                            core.print_registers();
+                            core.print_mem_around_interest(500);
                         }
                         Err(_e) => {
                             break;
@@ -269,9 +314,8 @@ mod tests {
                                 break;
                             }
                             core.execute(inst);
-                            dump_registers(&core);
-                            print_mem_around_interest(&core, 500);
-                            core.pc += 4;
+                            core.print_registers();
+                            core.print_mem_around_interest(500);
                         }
                         Err(_e) => {
                             break;
@@ -291,6 +335,41 @@ mod tests {
                 assert_eq!(core.regs[7], 0xfffffffe);
                 assert_eq!(core.regs[8], 0xfffffffe);
                 assert_eq!(core.regs[9], 0);
+            } else {
+                assert!(false, "Should'nt hit this");
+            }
+        } else {
+            assert!(false, "Should'nt hit this");
+        }
+    }
+
+    #[test]
+    fn test_fib() {
+        let mut buffer = vec![];
+        if let Ok(mut file) = File::open("test.bin") {
+            if let Ok(_) = file.read_to_end(&mut buffer) {
+                let mut core = cpu::Cpu::new(dram::Dram::new(buffer));
+                core.regs[2] = (DRAM_BASE + 1024 * 1024) as u32;
+                loop {
+                    match core.fetch() {
+                        Ok(inst) => {
+                            println!("instruction : {:#x}", inst);
+                            if inst == 0x0 {
+                                break;
+                            }
+                            core.execute(inst);
+                            core.regs[0] = 0;
+                            if core.pc == 0 {
+                                assert_eq!(core.regs[10], 5);
+                                assert_eq!(core.regs[14], 1);
+                                assert_eq!(core.regs[15], 5);
+                            }
+                        }
+                        Err(_e) => {
+                            break;
+                        }
+                    }
+                }
             } else {
                 assert!(false, "Should'nt hit this");
             }

@@ -7,11 +7,8 @@ pub struct Dram {
 impl Dram {
     pub fn new(mut code: Vec<u8>) -> Self {
         let mut dram: Vec<u8> = vec![0; DRAM_BASE as usize];
-        code.iter().for_each(|byte| {
-            println!("{:#x}", byte);
-        });
         dram.append(&mut code);
-        dram.resize(dram.len() + 128 * 1024, 0);
+        dram.resize(dram.len() + 2048 * 1024, 0);
         return Dram { buffer: dram };
     }
     pub fn len(&mut self) -> usize {

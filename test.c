@@ -1,5 +1,5 @@
 int fib(int n);
-int main() { return fib(10); }
+int main() { return fib(5); }
 
 int fib(int n) {
   if (n == 0 || n == 1)

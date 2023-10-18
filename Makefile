@@ -1,7 +1,7 @@
 all: asm
 
 c: test.c 
-	riscv64-unknown-elf-gcc -o test -T linker.ld test.c -nostdlib
+	riscv64-unknown-elf-gcc -o test -T linker.ld test.c -nostdlib -march=rv32i -mabi=ilp32
 	riscv64-unknown-elf-objcopy -O binary test test.bin
 
 asm: test_add.s test_load_store.s
