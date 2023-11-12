@@ -1,10 +1,10 @@
-all: asm
+all: asm c
 
 c: test.c 
 	riscv64-unknown-elf-gcc -o test -T linker.ld test.c -nostdlib -march=rv32i -mabi=ilp32
 	riscv64-unknown-elf-objcopy -O binary test test.bin
 
-asm: test_add.s test_load_store.s
+asm: test_add.s test_load_store.s test_load_store2.s test_load_store3.s test_load_store4.s test_slt_family.s test_shift_bits_family.s
 	riscv64-unknown-elf-as -o test_add.o test_add.s
 	riscv64-unknown-elf-as -o test_load_store.o test_load_store.s
 	riscv64-unknown-elf-as -o test_load_store2.o test_load_store2.s
